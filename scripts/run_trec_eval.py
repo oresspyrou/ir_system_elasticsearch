@@ -1,27 +1,26 @@
 import os
 import subprocess
 import urllib3
+import config 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-trec_eval_path = r"C:\Users\user\Desktop\trec_eval\trec_eval.exe"  
-qrels_path = r"C:\Users\user\Desktop\SAP_1\data\IR2025\qrels.txt"  
-results_folder = r"C:\Users\user\Desktop\SAP_1\results"            
-output_folder = results_folder                                     
 
+trec_files = [f for f in os.listdir(config.RESULTS_DIR) if f.endswith("_trec.txt")]
 
-trec_files = [f for f in os.listdir(results_folder) if f.endswith("_trec.txt")]
+if not trec_files:
+    print(f"Δεν βρέθηκαν αρχεία *_trec.txt στον φάκελο: {config.RESULTS_DIR}")
 
 for results_file in trec_files:
-    input_results_path = os.path.join(results_folder, results_file)
+    input_results_path = os.path.join(config.RESULTS_DIR, results_file)
 
     k = results_file.split("_")[1][3:]
 
-    output_file_path = os.path.join(output_folder, f"eval_top{k}.txt")
+    output_file_path = os.path.join(config.RESULTS_DIR, f"eval_top{k}.txt")
 
     with open(output_file_path, "w", encoding="utf-8") as out_file:
         subprocess.run(
-            [trec_eval_path, qrels_path, input_results_path],
+            [config.TREC_EVAL_PATH, config.QRELS_FILE, input_results_path],
             stdout=out_file,
             stderr=subprocess.DEVNULL
         )
