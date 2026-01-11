@@ -2,13 +2,14 @@ import os
 import pandas as pd
 from elastic_client import Search
 import urllib3
+import config  
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 #ggs
 
 def search_query(es, query_text, k=20):
     response = es.search(
-        index="ir2025_documents",
+        index=config.INDEX_NAME,
         body={
             "query": {"match": {"Text": query_text}},
             "size": k
@@ -18,13 +19,12 @@ def search_query(es, query_text, k=20):
 
 
 def main():
-    results_dir = r"C:\Users\user\Desktop\SAP_1\results"
-    os.makedirs(results_dir, exist_ok=True)
+    os.makedirs(config.RESULTS_DIR, exist_ok=True)
 
     s = Search()
     es = s.es
 
-    queries_df = pd.read_csv(r"C:\Users\user\Desktop\SAP_1\data\IR2025\queries.csv")
+    queries_df = pd.read_csv(config.QUERIES_FILE)
 
     before = len(queries_df)
     queries_df = queries_df.drop_duplicates(subset=["ID", "Text"])
@@ -32,7 +32,8 @@ def main():
     print(f"🔎 Loaded {after} unique queries (removed {before - after} duplicates)")
 
     top_k_list = [20, 30, 50]
-    run_name = "elasticsearch_bm25"
+    
+    run_name = config.RUN_NAME
 
     for k in top_k_list:
         trec_lines = []
@@ -65,7 +66,7 @@ def main():
                 if unique_count >= k:
                     break 
 
-        output_file = os.path.join(results_dir, f"results_top{k}_trec.txt")
+        output_file = os.path.join(config.RESULTS_DIR, f"results_top{k}_trec.txt")
         with open(output_file, "w", encoding="utf-8") as f:
             f.write("\n".join(trec_lines))
 
@@ -74,7 +75,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 
