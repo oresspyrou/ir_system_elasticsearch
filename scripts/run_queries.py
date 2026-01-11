@@ -4,6 +4,7 @@ from elastic_client import Search
 import urllib3
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+#ggs
 
 def search_query(es, query_text, k=20):
     response = es.search(

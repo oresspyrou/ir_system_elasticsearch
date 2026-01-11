@@ -24,7 +24,7 @@ data/IR2025/
 
 **Τι περιέχουν:**
 - **documents.csv**: Χιλιάδες τεκμήρια με ID και κείμενο που θα αναζητηθούν
-- **queries.csv**: Queries (αναζητητικές φράσεις) που χρήστες θέλουν να βρουν
+- **queries.csv**: Queries που χρήστες θέλουν να βρουν
 - **qrels.txt**: Η "σωστή απάντηση" - ποια έγγραφα είναι σχετικά με κάθε query (χρησιμοποιείται για αξιολόγηση)
 
 ### 2.2 Δεδομένα Εξόδου
@@ -49,20 +49,19 @@ results/
 
 **Κλειδιακός κώδικας:**
 ```python
-# Δημιουργία index με mappings
+
 es.indices.create(
     index=INDEX_NAME,
     body={
         "mappings": {
             "properties": {
-                "ID": {"type": "keyword"},           # Ακριβής ταύτιση, χωρίς tokenization
-                "Text": {"type": "text", "analyzer": "english"}  # Αναζήτηση με stemming
+                "ID": {"type": "keyword"},           
+                "Text": {"type": "text", "analyzer": "english"} 
             }
         }
     }
 )
 
-# Bulk insert όλων των εγγράφων
 actions = [
     {
         "_index": INDEX_NAME,
@@ -93,7 +92,7 @@ def search_query(es, query_text, k=20):
         index="ir2025_documents",
         body={
             "query": {"match": {"Text": query_text}},  # BM25 είναι το default
-            "size": k                                    # Επιστρέφει top-k αποτελέσματα
+            "size": k                                   
         }
     )
     return response['hits']['hits']
@@ -112,14 +111,12 @@ unique_count = 0
 for rank, hit in enumerate(hits, start=1):
     doc_id = hit['_source'].get('ID')
     
-    # Αν ήδη το έχουμε δει, παραλείπουμε
     if doc_id in seen_ids:
         continue
     
     seen_ids.add(doc_id)
     unique_count += 1
     
-    # TREC format: query_id Q0 doc_id rank score run_name
     line = f"{query_id} Q0 {doc_id} {unique_count} {hit['_score']} {run_name}"
     trec_lines.append(line)
     
@@ -292,9 +289,9 @@ queries_df = queries_df.drop_duplicates(subset=["ID", "Text"])
 ## 8. Συμπεράσματα
 
 Αυτό είναι ένα **πλήρες Information Retrieval pipeline** που:
-✅ Δεξιά ευρετηριοποιεί εγγράφα σε Elasticsearch  
-✅ Εκτελεί αναζητήσεις με BM25 scoring  
-✅ Παράγει TREC-compliant αποτελέσματα  
-✅ Αξιολογεί την απόδοση έναντι ground truth  
+ Δεξιά ευρετηριοποιεί εγγράφα σε Elasticsearch  
+ Εκτελεί αναζητήσεις με BM25 scoring  
+ Παράγει TREC-compliant αποτελέσματα  
+ Αξιολογεί την απόδοση έναντι ground truth  
 
 
