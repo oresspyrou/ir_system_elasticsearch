@@ -1,20 +1,18 @@
 from elasticsearch import Elasticsearch
 from pprint import pprint
-from dotenv import load_dotenv
-import os
 import sys
+import config
 
-load_dotenv()
 
 class Search:
     def __init__(self):
-        host = os.getenv("ES_HOST")
-        username = os.getenv("ES_USERNAME")
-        password = os.getenv("ES_PASSWORD")
+        host = config.ES_HOST
+        username = config.ES_USERNAME
+        password = config.ES_PASSWORD
 
         missing = [var for var, val in [("ES_HOST", host), ("ES_USERNAME", username), ("ES_PASSWORD", password)] if not val]
         if missing:
-            print(f"Missing environment variables: {', '.join(missing)}")
+            print(f"Missing configuration variables: {', '.join(missing)}")
             sys.exit(1)
 
         self.es = Elasticsearch(
