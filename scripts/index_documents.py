@@ -1,27 +1,20 @@
 import pandas as pd
 from elasticsearch import Elasticsearch, helpers
-from dotenv import load_dotenv
-import os
 import urllib3
+import config 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-load_dotenv()
-ES_USER = os.getenv("ES_USERNAME")
-ES_PASSWORD = os.getenv("ES_PASSWORD")
-ES_HOST = os.getenv("ES_HOST")
 
 es = Elasticsearch(
-    ES_HOST,
-    basic_auth=(ES_USER, ES_PASSWORD),
+    config.ES_HOST,
+    basic_auth=(config.ES_USERNAME, config.ES_PASSWORD),
     verify_certs=False
 )
 
-index_name = "ir2025_documents"
-
-if not es.indices.exists(index=index_name):
+if not es.indices.exists(index=config.INDEX_NAME):
     es.indices.create(
-        index=index_name,
+        index=config.INDEX_NAME,
         body={
             "mappings": {
                 "properties": {
@@ -31,15 +24,16 @@ if not es.indices.exists(index=index_name):
             }
         }
     )
-    print(f"Index '{index_name}' δημιουργήθηκε!")
+    print(f"Index '{config.INDEX_NAME}' δημιουργήθηκε!")
 else:
-    print(f"ℹIndex '{index_name}' υπάρχει ήδη.")
+    print(f"ℹIndex '{config.INDEX_NAME}' υπάρχει ήδη.")
 
-df = pd.read_csv(r"C:\Users\user\Desktop\SAP_1\data\IR2025\documents.csv")
+print(f"Reading documents from: {config.DOCUMENTS_FILE}")
+df = pd.read_csv(config.DOCUMENTS_FILE)
 
 actions = [
     {
-        "_index": index_name,
+        "_index": config.INDEX_NAME, 
         "_id": row["ID"],
         "_source": {
             "ID": row["ID"],
@@ -51,5 +45,6 @@ actions = [
 
 helpers.bulk(es, actions)
 
-print(f"Εισαγωγή {len(actions)} documents ολοκληρώθηκε!")
+es.indices.refresh(index=config.INDEX_NAME)
 
+print(f"Εισαγωγή {len(actions)} documents ολοκληρώθηκε!")
